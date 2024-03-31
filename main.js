@@ -5,6 +5,7 @@
  * mosqueteira
  */
 const personagem = "feiticeira";
+// ================== ADICIONE AS CONSTANTES AQUI =====================
 const larguraJogo = 1300;
 const alturaJogo = 600;
 const tempoParaGerarFogos = 5000;
@@ -13,6 +14,7 @@ const gameAttributes = {
 };
 
 class CenaPrincipal extends Phaser.Scene {
+  // ===================== ADICIONE OS ATRIBUTOS AQUI =====================
   player;
   triggers;
   isJumping = false;
@@ -23,6 +25,7 @@ class CenaPrincipal extends Phaser.Scene {
     super({ key: "CenaPrincipal" });
   }
 
+  // ===================== MÉTODO PRELOAD =====================
   preload() {
     this.load.spritesheet("run", `assets/${personagem}/Run.png`, {
       frameWidth: 128,
@@ -50,6 +53,7 @@ class CenaPrincipal extends Phaser.Scene {
     this.load.image("fire", "assets/fire.png");
   }
 
+  // ===================== MÉTODO CREATE =====================
   create() {
     this.add
       .image(
@@ -58,7 +62,7 @@ class CenaPrincipal extends Phaser.Scene {
         "background"
       )
       .setOrigin(0.5, 0.5)
-      .setScale(.7);
+      .setScale(0.7);
     // Chama a função para gerar as animações
     this.criarAnimacoes();
 
@@ -76,16 +80,17 @@ class CenaPrincipal extends Phaser.Scene {
     this.player = this.physics.add.sprite(100, 100, "run_player");
     this.player.setCollideWorldBounds(true).setScale(0.5);
     this.player.body.setSize(50, 70).setOffset(40, 60);
-
     // Inicia a animação no player
     this.player.play("idle", true);
 
     // Cria os triggers de movimento
     this.triggers = this.input.keyboard.createCursorKeys();
 
-    const {moedas, geradorDeMoedas} = this.criarMoedas();
+    // Cria o grupo de moedas
+    const { moedas, geradorDeMoedas } = this.criarMoedas();
 
-    const {fogos, geradorDeFogos} = this.criarFogos();
+    // Cria o grupo de fogos
+    const { fogos, geradorDeFogos } = this.criarFogos();
 
     geradorDeFogos();
     geradorDeMoedas();
@@ -108,6 +113,7 @@ class CenaPrincipal extends Phaser.Scene {
       gameAttributes.scoreText.setText(`Score: ${gameAttributes.score}`);
     });
 
+    // Adicionando o colisor entre as flechas e as moedas
     this.physics.add.collider(this.flechas, moedas, (flecha, moeda) => {
       flecha.destroy();
       moeda.destroy();
@@ -116,6 +122,7 @@ class CenaPrincipal extends Phaser.Scene {
       gameAttributes.scoreText.setText(`Score: ${gameAttributes.score}`);
     });
 
+    // Adicionando o colisor entre as flechas e os fogos
     this.physics.add.collider(this.flechas, fogos, (flecha, fogo) => {
       flecha.destroy();
       fogo.destroy();
@@ -124,6 +131,7 @@ class CenaPrincipal extends Phaser.Scene {
       // geradorDeFogos();
     });
 
+    // Adicionando o colisor entre o player e os fogos
     this.physics.add.collider(this.player, fogos, (player, fogo) => {
       this.player.setPosition(100, 100);
       fogo.destroy();
@@ -134,6 +142,7 @@ class CenaPrincipal extends Phaser.Scene {
       gameAttributes.scoreText.setText(`Score: ${gameAttributes.score}`);
     });
 
+    // Loop para adicionar as plataformas no jogo
     platformsArray.forEach((platform) => {
       // Adiciona a plataforma no jogo
       const platformDeclared = this.physics.add
@@ -153,6 +162,7 @@ class CenaPrincipal extends Phaser.Scene {
     });
   }
 
+  // ===================== MÉTODO UPDATE =====================
   update() {
     if (gameAttributes.score >= 20) this.ganhaOJogo();
     if (gameAttributes.score < 0) this.perdeOJogo();
@@ -182,25 +192,51 @@ class CenaPrincipal extends Phaser.Scene {
     this.player.play(this.isJumping ? "jump" : this.currentAnim, true);
   }
 
-  criarFogos() {
-    const fogos = this.physics.add.group();
+  // ===================== ADICIONE AS FUNÇÕES AQUI =====================
 
-    const geradorDeFogos = () => {
-      const fogo = fogos.create(
-        Math.random() * larguraJogo,
-        Math.random() * 400,
-        "fire"
-      );
-      fogo.flipY = true;
-      fogo.body.onWorldBounds = true;
-      fogo.body.setCollideWorldBounds(true);
-      fogo.setBounce(1).setScale(0.5);
-      fogo.setVelocityX(Math.random() * 200 - 100);
-    };
+  // Função para criar as animações
+  criarAnimacoes() {
+    this.anims.create({
+      key: "run",
+      frames: this.anims.generateFrameNumbers("run", {
+        start: 0,
+        end: 7,
+      }),
+      frameRate: 14,
+      repeat: -1,
+    });
 
-    return { fogos, geradorDeFogos };
+    this.anims.create({
+      key: "shotArrow",
+      frames: this.anims.generateFrameNumbers("arrow", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "idle",
+      frames: this.anims.generateFrameNumbers("idle", {
+        start: 0,
+        end: 4,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
+    this.anims.create({
+      key: "jump",
+      frames: this.anims.generateFrameNumbers("jump", {
+        start: 2,
+        end: 7,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
   }
- 
+
   criarMoedas() {
     const moedas = this.physics.add.group();
 
@@ -227,6 +263,25 @@ class CenaPrincipal extends Phaser.Scene {
     };
 
     return { moedas, geradorDeMoedas };
+  }
+
+  criarFogos() {
+    const fogos = this.physics.add.group();
+
+    const geradorDeFogos = () => {
+      const fogo = fogos.create(
+        Math.random() * larguraJogo,
+        Math.random() * 400,
+        "fire"
+      );
+      fogo.flipY = true;
+      fogo.body.onWorldBounds = true;
+      fogo.body.setCollideWorldBounds(true);
+      fogo.setBounce(1).setScale(0.5);
+      fogo.setVelocityX(Math.random() * 200 - 100);
+    };
+
+    return { fogos, geradorDeFogos };
   }
 
   atirarFlecha() {
@@ -321,54 +376,11 @@ class CenaPrincipal extends Phaser.Scene {
         { fontSize: "32px", fill: "#ffffff" }
       )
       .setOrigin(0.5, 0.5);
-    
+
     // Adiciona o evento de clique para reiniciar o jogo
     this.input.once("pointerup", () => {
       gameAttributes.score = 0;
       this.scene.restart();
-    });
-  }
-
-  // Função para criar as animações
-  criarAnimacoes() {
-    this.anims.create({
-      key: "run",
-      frames: this.anims.generateFrameNumbers("run", {
-        start: 0,
-        end: 7,
-      }),
-      frameRate: 14,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "shotArrow",
-      frames: this.anims.generateFrameNumbers("arrow", {
-        start: 0,
-        end: 5,
-      }),
-      frameRate: 5,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "idle",
-      frames: this.anims.generateFrameNumbers("idle", {
-        start: 0,
-        end: 4,
-      }),
-      frameRate: 2,
-      repeat: -1,
-    });
-
-    this.anims.create({
-      key: "jump",
-      frames: this.anims.generateFrameNumbers("jump", {
-        start: 2,
-        end: 7,
-      }),
-      frameRate: 2,
-      repeat: -1,
     });
   }
 }
